@@ -1,5 +1,9 @@
 # ChemBERTa3
-ChemBERTa-3: An Open Source Training Framework for Chemical Foundation Models
+ChemBERTa-3: An Open Source Training Framework for Chemical Foundation Models. The figure below illustrates the overall architecture of the ChemBERTa-3 framework.
+
+![Figure 1](./results/images/Overview_chemberta3.png)
+
+The sections below walk through the complete ChemBERTa-3 workflow, from setting up the environment and preparing datasets to pretraining, fine-tuning, and benchmarking chemical foundation models.
 
 1. [Setup Environment](#setup-environment)
 2. [Benchmark Models](#benchmark-models)
@@ -10,6 +14,7 @@ ChemBERTa-3: An Open Source Training Framework for Chemical Foundation Models
 5. [Finetuning](#finetuning)
 6. [Benchmark Results](#benchmark-results)
 8. [Citations](#citatiobs)
+
 
 ## Setup Environment 
 
@@ -53,6 +58,10 @@ This pipeline supports the following featurizers:
 - RDKitConformer (rdkit-conformer) – Generates 3D conformers using RDKit and computes features suitable for 3D-aware models such as Infomax3D.
 - DMPNN (dmpnn) – The D-MPNN featurizer generates graph-based molecular features using atom and bond representations inspired by the "Analyzing Learned Molecular Representations for Property Prediction" paper.
 
+The following table compares model architectures, featurizer/tokenizer, types of featurization used, and the corresponding pretraining method employed.
+
+![Figure 2](./results/images/Featurizers.png)
+
 ### Pretraining Datasets
 
 ZINC20 is a chemical library containing 1.4 billion compounds, 1.3 billion of which are purchasable, sourced from 310 catalogs from 150 companies, specifically designed for virtual screening.
@@ -81,11 +90,11 @@ We utilize datasets from **MoleculeNet**, a benchmark suite designed to standard
 
 #### DeepChem scaffold splits
 
-DeepChem’s implementation of ScaffoldSplitter follows the Bemis-Murcko scaffold-based approach to split molecular datasets. It groups molecules based on their core scaffold structures, ensuring structurally similar compounds remain together. The splitter prioritizes placing larger scaffold groups into the training set before allocating smaller ones to validation and test sets, promoting a more realistic evaluation of model generalization. For benchmarking using DeepChem splits, each dataset was split into 80/10/10 train/validation/test sets using the scaffold splitter. Table 6 compares the performance of models on the classification dataset splits using DeepChem scaffold splitter.
+DeepChem’s implementation of ScaffoldSplitter follows the Bemis-Murcko scaffold-based approach to split molecular datasets. It groups molecules based on their core scaffold structures, ensuring structurally similar compounds remain together. The splitter prioritizes placing larger scaffold groups into the training set before allocating smaller ones to validation and test sets, promoting a more realistic evaluation of model generalization. For benchmarking using DeepChem splits, each dataset was split into 80/10/10 train/validation/test sets using the scaffold splitter. Figure 4 compares the performance of models on the classification dataset splits using DeepChem scaffold splitter.
 
 #### MoLFormer scaffold splits
 
-To ensure consistency in evaluating our benchmarking platform with MoLFormer, we used the same scaffold splits from the MolFormer manuscript to benchmark models trained using ChemBERTa-3 architecture. Table 2 compares the performance of models on the classification and regression dataset splits provided by MoLFormer. As we discuss in the next section, MoLFormer’s scaffold splitting algorithm appears to differ significantly from
+To ensure consistency in evaluating our benchmarking platform with MoLFormer, we used the same scaffold splits from the MolFormer manuscript to benchmark models trained using ChemBERTa-3 architecture. Figure 2 compares the performance of models on the classification and regression dataset splits provided by MoLFormer. MoLFormer’s scaffold splitting algorithm appears to differ significantly from
 DeepChem’. The scaffold splits used in this study can be downloaded from `https://ibm.ent.box.com/v/MoLFormer-data`.
 
 ## Pretraining
@@ -134,39 +143,32 @@ bash gcn_classification_script.sh
 
 ### Using MoLFormer splits
 
-Table 2 compares baseline models (RF, GCN, DMPNN), graph-pre-training models (Infograph, Infomax3D, Grover) and transformer models (ChemBERTa-MLM-100 M, MoLFormer) on molecular property prediction. The upper block reports ROC-AUC scores (higher is better) for six classification datasets (BACE, BBBP, TOX21, HIV, SIDER, CLINTOX) using MoLFormer scaffold splits. The lower block reports RMSE (lower is better) for four regression datasets (ESOL, Lipophilicity and FreeSolv, and MAE for QM9). c3-MoLFormer is our MoLFormer re-implementation trained with ChemBERTa-3 infrastructure; Infograph/Infomax3D/Grover were pre-trained on 250K SMILES from the ZINC dataset due to scalability issues with larger pretrained datasets. c3-MoLFormer comes close to matching MolFormer paper results on most classification tasks and slightly underperforms MoLFormer on multiple datasets, possibly due to insufficient fine-tuning. NOTE: We performed three runs for each dataset; the “±” shows the range of values and is not a confidence interval. Due to the high expense of running QM9, triplicate runs were not performed for this dataset.
+Figure 2 compares baseline models (RF, GCN, DMPNN), graph-pre-training models (Infograph, Infomax3D, Grover) and transformer models (ChemBERTa-MLM-100 M, MoLFormer) on molecular property prediction. MoLFormer (paper) report results from MoLFormer publication. The upper block reports ROC-AUC scores (higher is better) for six classification datasets (BACE, BBBP, TOX21, HIV, SIDER, CLINTOX) using MoLFormer
+scaffold splits. The lower block reports RMSE (lower is better) for four regression datasets (ESOL, Lipophilicity and FreeSolv, and MAE for QM9). c3-MoLFormer is our MoLFormer re-implementation trained with ChemBERTa-3 infrastructure; Infograph/Infomax3D/Grover were pre-trained on 250K
+SMILES from the ZINC dataset due to scalability issues with larger pretrained datasets. c3-MoLFormer comes close to matching MolFormer paper results on most classification tasks and slightly underperforms MoLFormer on multiple datasets, possibly due to insufficient fine-tuning. 
 
-![Table 2](./results/images/Molformer-splits-benchmark1.png)
+NOTE: We performed three runs for each dataset; the “±” shows the range of values and is not a confidence interval. Due to the high expense of running QM9, triplicate runs were not performed for this dataset. (green=top ranked, yellow=second rank)
 
-Table 3 compares ChemBERTa and MoLFormer models pretrained on ZINC and PubChem datasets of varying sizes on various classification datasets and reports ROC AUC scores (Higher is better). We use MoLFormer scaffold splits. We have pretrained ChemBERTa models on the ZINC 10M and 100M dataset. Larger pre-training datasets appear to lead to slight improvements in downstream performance, but with diminishing returns. The scaling effect is not consistent; note the Chemberta-MLM-100M model outperforms the scores reported by MoLFormer 1.1B on BBBP and CLINTOX datasets. NOTE: We performed three runs for each dataset; the “±” shows the range of values and is not a confidence interval.
+![Figure 2](./results/images/Molformer-splits-benchmark1.png)
 
-![Table 3](./results/images/Molformer-splits-benchmark2.png)
+Figure 3 compares ChemBERTa and MoLFormer models pretrained on ZINC and PubChem datasets of varying sizes on various classification datasets and reports ROC AUC scores (Higher is better). We use MoLFormer scaffold splits. We have pretrained ChemBERTa models on the ZINC 10M and 100M dataset. Larger pre-training datasets appear to lead to slight improvements in downstream performance, but with diminishing returns. The scaling effect is not consistent; note the Chemberta-MLM-100M model outperforms the scores reported by MoLFormer 1.1B on BBBP
+and CLINTOX datasets. 
+
+NOTE: We performed three runs for each dataset; the “±” shows the range of values and is not a confidence interval.
+
+![Figure 3](./results/images/Molformer-splits-benchmark2.png)
 
 
 ### Using DeepChem splits
 
-Table 6 compares the different baseline models (RF, GCN, DMPNN, Infograph, Infomax3D, and Grover) to the transformer architecture models, ChemBERTa and MoLFormer, on various classification datasets and reports ROC AUC scores (Higher is better). We used the DeepChem scaffold splitter to split the datasets provided by MoleculeNet. Here, c3-MoLFormer indicates that the MoLFormer model is trained using Chemberta3
-infrastructure and MoLFormer-LHPC is trained using the HPC clusters.
+Figure 4 compares different baseline models (RF, GCN, DMPNN, Infograph, Infomax3D, and Grover) to the transformer architecture models, ChemBERTa and MoLFormer, on various classification datasets, in block 1 and regression datasets, in block 2 and report ROC-AUC scores (Higher is better) and RMSE (Lower is better) respectively. We used the DeepChem scaffold splitter to split the datasets provided by MoleculeNet. Here,
+c3-MoLFormer indicates that the MoLFormer model is trained using ChemBERTa-3 infrastructure and MoLFormer-LHPC is trained using the HPC clusters. (green=top ranked, yellow=second rank)
 
-![Table 6](./results/images/Deepchem-splits-benchmark1.png)
+![Figure 4](./results/images/Deepchem-splits-benchmark1.png)
 
-Table 7 compares the different baseline models (RF, GCN, DMPNN, Infograph, Infomax3D, and Grover) to the transformer architecture models, ChemBERTa and MoLFormer, on various regression datasets and reports RMSE(Lower is better). We used DeepChem scaffold splitter to split the dataset provided by MoleculeNet.
+Figure 5 compares the ChemBERTa and MoLFormer models pretrained on ZINC and PubChem datasets of varying sizes on various classification datasets and reports ROC AUC scores (Higher is better). We used DeepChem scaffold splits and pretrained ChemBERTa models on the ZINC 10M and 100M dataset.
 
-![Table 7](./results/images/Deepchem-splits-benchmark2.png)
-
-Table 8 compares the ChemBERTa and MoLFormer models pretrained on ZINC and PubChem datasets of varying sizes on various classification datasets and reports ROC AUC scores (Higher is better). We used DeepChem scaffold splits and pretrained ChemBERTa models on the ZINC 10M and 100M dataset.
-
-![Table 8](./results/images/Deepchem-splits-benchmark3.png)
-
-
-## Additional Runs
-
-Table 9 compares various baseline models (RF, GCN, DMPNN, InfoGraph, InfoMax3D, and GROVER) with transformer-based architectures, ChemBERTa and MolFormer, across multiple regression datasets using RMSE as the evaluation metric (lower is better). The datasets from MoleculeNet were split using DeepChem's scaffold splitter, and no data transformations were applied during evaluation. 
-![Table 9](./results/images/Deepchem-splits-no-transformation.png)
-
-Table 10 compares various baseline models (RF, GCN, DMPNN, InfoGraph, InfoMax3D, and GROVER) with transformer-based architectures, ChemBERTa and MolFormer, across multiple regression datasets using RMSE as the evaluation metric (lower is better). The datasets from MoLFormer splits were used, and data transformations were applied during evaluation.
-
-![Table 10](./results/images/Molformer-splits-with-transformation.png)
+![Figure 5](./results/images/Deepchem-splits-benchmark2.png)
 
 
 ## Legacy Code and Outdated Sections
@@ -183,7 +185,6 @@ This project evolved through several stages, and some parts of the codebase refl
 - The initial benchmark results can be found in `chemberta3/results` folder.
 
 For all current workflows, refer to the updated scripts and documentation in the main directories.
-
 
 
 ## Citations
