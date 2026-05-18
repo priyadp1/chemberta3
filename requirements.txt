@@ -8,6 +8,7 @@ dgllife
 transformers
 tokenizers
 # select backend for torch (cuda, rocm)
---extra-index-url https://download.pytorch.org/whl/cpu 
-torch
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.0+cpu
 rdkit
+deepchem
