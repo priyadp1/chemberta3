@@ -1,0 +1,9 @@
+Greedy Search Generated SMILES:
+Greedy Search Unique SMILES: 1.00
+Greedy Search Novel SMILES: 0.10
+Greedy Search Total Valid: 2920, Total Invalid: 6075, Validity Rate: 0.32
+
+Beam Search Generated SMILES:
+Beam Search Unique SMILES: 1.00
+Beam Search Novel SMILES: 0.36
+Beam Search Total Valid: 4192, Total Invalid: 7857, Validity Rate: 0.35
